@@ -26,13 +26,19 @@ body:
       description: |
         List the user stories that make up this epic.
         Each story should follow the As a / I want / So that format.
-        Include Gherkin acceptance criteria per story.
+        Include Gherkin acceptance criteria, a priority level (P1 = MVP, P2 = important, P3 = nice-to-have),
+        and a brief description of how the story can be tested independently.
       value: |
         ### Story 1: {title}
+
+        **Priority:** P1 (MVP) | P2 (Important) | P3 (Nice-to-have)
+        **Why this priority:** {One sentence explaining why this priority level}
 
         **As a** {role}
         **I want** {capability}
         **So that** {benefit}
+
+        **Independent Test:** {How this story can be verified in isolation, without depending on other stories being complete. E.g., "Can be tested with a mock auth token and seeded database."}
 
         ```gherkin
         Feature: {Feature name}
@@ -45,9 +51,14 @@ body:
 
         ### Story 2: {title}
 
+        **Priority:** P1 (MVP) | P2 (Important) | P3 (Nice-to-have)
+        **Why this priority:** {One sentence explaining why this priority level}
+
         **As a** {role}
         **I want** {capability}
         **So that** {benefit}
+
+        **Independent Test:** {How this story can be verified in isolation}
 
         ```gherkin
         Feature: {Feature name}

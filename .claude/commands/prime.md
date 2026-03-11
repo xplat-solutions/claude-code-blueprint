@@ -30,6 +30,7 @@ context/
 ├── product-vision.md               — What {PROJECT_NAME} is, target users, success criteria
 ├── tech-stack.md                    — Technology decisions and rationale
 ├── conventions.md                   — Code style, naming, commit format, API patterns, validation gates
+├── principles.md                    — Architectural principles & governance gates (used by /review-specs)
 ├── decisions/                       — Architecture Decision Records (if any)
 └── guides/
     └── plugin-registry.md           — Technology → plugin mapping (verified v1.5.5)

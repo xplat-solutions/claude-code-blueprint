@@ -16,7 +16,8 @@
 
 1. **`/prime` ran this session** — Session UUID must be in conversation memory.
 2. **Tracks exist** — The epic's tracks must be registered in `conductor/tracks.md` and have `spec.md` + `plan.md`.
-3. **Remote is accessible** — `git push` must work (for chaining worktrees from remote branches).
+3. **Spec reviews passed** — Each track must have a passing `review.md` (from `/review-specs`). Run `/review-specs {track-id} --epic {slug}` to review all tracks at once before calling this command.
+4. **Remote is accessible** — `git push` must work (for chaining worktrees from remote branches).
 
 ---
 

@@ -18,7 +18,8 @@
 
 1. **`/prime` ran this session** — The agent must have a prime session UUID in conversation memory. If not, stop and instruct: `Run /prime first.`
 2. **Conductor track exists** — `conductor/tracks/{track-id}/spec.md` and `conductor/tracks/{track-id}/plan.md` must exist.
-3. **Track status is ready** — The track should be in an implementable state in `conductor/tracks.md`.
+3. **Spec review passed** — `conductor/tracks/{track-id}/review.md` must exist and contain a passing verdict. See Step 1 Preflight for details.
+4. **Track status is ready** — The track should be in an implementable state in `conductor/tracks.md`.
 
 ---
 
@@ -53,6 +54,7 @@ track-id:  The Conductor track ID (e.g., user-auth_20250115, dashboard_20250220)
 │   ├── Verify prime session UUID in conversation memory            │
 │   ├── Verify conductor/tracks/{track-id}/spec.md exists           │
 │   ├── Verify conductor/tracks/{track-id}/plan.md exists           │
+│   ├── Verify review.md exists and verdict is PASS (gate)          │
 │   ├── Check spec.md for "Source: gh#NNN"                          │
 │   │   ├── If found: extract issue number, store for Step 5        │
 │   │   └── Update GitHub Projects status → "Implementing"          │
@@ -131,6 +133,53 @@ Create a track first:
   /conductor:new-track                    (interactive)
   /accept #NNN                            (from GitHub Issue)
   Or manually create conductor/tracks/{track-id}/ with spec.md + plan.md
+```
+
+### Verify Spec Review (Gate)
+
+Check that the spec review has been completed and passed:
+
+```bash
+conductor/tracks/{track-id}/review.md    # Review report from /review-specs
+```
+
+Read `review.md` and check the `Verdict:` line:
+
+- **PASS** or **PASS WITH WARNINGS** → proceed to implementation
+- **FAIL** → stop and instruct the user to resolve issues
+
+If `review.md` does not exist:
+
+```
+❌ Spec review not found: conductor/tracks/{track-id}/review.md
+
+Run /review-specs {track-id} first to validate the spec and plan.
+Spec review is required before implementation to catch requirement gaps,
+coverage holes, and inconsistencies early.
+```
+
+**Stop here.** Do not proceed without a reviewed track.
+
+If `review.md` exists but verdict is FAIL:
+
+```
+❌ Spec review FAILED for track {track-id}
+
+The review found CRITICAL issues that must be resolved before implementation.
+See: conductor/tracks/{track-id}/review.md
+
+Fix the issues in spec.md/plan.md, then re-run:
+  /review-specs {track-id}
+```
+
+**Stop here.** Do not proceed with a failed review.
+
+If verdict is PASS WITH WARNINGS, display a note but proceed:
+
+```
+⚠️ Spec review passed with warnings for track {track-id}
+   See: conductor/tracks/{track-id}/review.md for details.
+   Proceeding with implementation.
 ```
 
 ### Check for Source GitHub Issue
@@ -429,6 +478,20 @@ Run /prime first to load project context and verify plugins.
 ```
 ❌ Track not found: conductor/tracks/{track-id}/
 Create a track first via /conductor:new-track, /accept, or manually.
+```
+
+### Spec Review Missing
+
+```
+❌ Spec review not found: conductor/tracks/{track-id}/review.md
+Run /review-specs {track-id} first to validate the spec and plan.
+```
+
+### Spec Review Failed
+
+```
+❌ Spec review FAILED for track {track-id}
+Fix CRITICAL issues in spec.md/plan.md, then re-run /review-specs {track-id}.
 ```
 
 ### Base Branch Not Found

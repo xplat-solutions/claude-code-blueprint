@@ -26,7 +26,8 @@ cd {PROJECT_NAME}
 # 4. Start building (issue intake workflow)
 # Create a GitHub Issue using story/bug/epic template
 /accept #1                               # Accept issue → create Conductor track(s)
-# Review specs in conductor/tracks/
+# Resolve any [NEEDS CLARIFICATION] markers in spec.md
+/review-specs {track-id}                 # Validate spec/plan → writes review.md (required gate)
 /implement-track {track-id}              # Implement a single track
 /implement-prd {epic-slug}              # Or implement all tracks from an epic
 ```
@@ -52,6 +53,7 @@ cd {PROJECT_NAME}
 │   ├── product-vision.md       # Problem, users, success criteria
 │   ├── tech-stack.md           # Technology decisions + plugin mapping
 │   ├── conventions.md          # Code style, commits, API patterns
+│   ├── principles.md           # Architectural principles & governance gates
 │   ├── decisions/              # Architecture Decision Records
 │   └── guides/                 # Plugin registry + project-specific guides
 │       └── plugin-registry.md  # Technology → plugin mapping
@@ -76,9 +78,10 @@ cd {PROJECT_NAME}
 | Step | Command | What Happens |
 |------|---------|-------------|
 | 1. Create issue | GitHub UI | Use story, bug, or epic template (with Gherkin acceptance criteria) |
-| 2. Accept | `/accept #NNN` | Creates Conductor track(s), updates GitHub status, creates child issues for epics |
-| 3. Review | Manual | Check `conductor/tracks/{id}/spec.md` and `plan.md` |
-| 4. Implement | `/implement-track {id}` or `/implement-prd {slug}` | Worktree → implement → validate → review → PR |
+| 2. Accept | `/accept #NNN` | Creates Conductor track(s), flags `[NEEDS CLARIFICATION]` markers, updates GitHub status |
+| 3. Review specs | `/review-specs {id}` | Validates spec↔plan consistency, coverage, principles alignment. Writes `review.md` |
+| 4. Review | Manual | Check `conductor/tracks/{id}/spec.md`, `plan.md`, and `review.md` |
+| 5. Implement | `/implement-track {id}` or `/implement-prd {slug}` | Verifies review passed → worktree → implement → validate → review → PR |
 
 ### Alternative Approaches
 
@@ -88,10 +91,12 @@ cd {PROJECT_NAME}
 | Ad-hoc | `/implement-prompt {description}` | Quick features from a description |
 | Agent Teams | `/team-feature "description" --plan-first` | Complex cross-cutting features |
 
-### Code Review & Security
+### Spec Review & Code Review
 
 | Command | Purpose |
 |---------|---------|
+| `/review-specs {id}` | Pre-implementation spec/plan consistency analysis (required gate) |
+| `/review-specs {id} --epic {slug}` | Batch review all tracks in an epic + cross-track consistency |
 | `/full-review` | Multi-perspective code review |
 | `/team-review src/ --reviewers security,performance,architecture` | Parallel team review |
 | `/security-sast` | SAST security scan |
@@ -127,11 +132,25 @@ See `SETUP.md` for the complete step-by-step setup guide, including:
 
 1. Replacing placeholder tokens
 2. Filling in the context layer (product vision, tech stack, conventions)
-3. Installing and configuring Hobson plugins
-4. Initializing Conductor
-5. Setting up GitHub Project (board, labels, issue templates)
-6. Adding project-specific guides (optional)
-7. Creating your first track
+3. Defining architectural principles (see below)
+4. Installing and configuring Hobson plugins
+5. Initializing Conductor
+6. Setting up GitHub Project (board, labels, issue templates)
+7. Adding project-specific guides (optional)
+8. Creating your first track
+
+### Maintaining Architectural Principles
+
+The `context/principles.md` file defines your project's immutable development principles. These are enforced by `/review-specs` as governance gates — violations are flagged as CRITICAL and block implementation.
+
+**This file should be actively maintained throughout the project's lifecycle:**
+
+- Start with 3-5 principles that reflect your team's strongest architectural opinions
+- Add new principles when you discover recurring quality issues in code reviews or production incidents
+- Amend principles via PR when they no longer serve the project — track changes in the Amendment Log
+- Each principle must have a clear MUST/SHOULD level, a rationale, and concrete gate checks
+
+The principles complement `context/conventions.md` (which covers code style and patterns) by focusing on *architectural governance* — the high-level decisions that shape how features are designed, not how code is formatted.
 
 ---
 
@@ -191,9 +210,17 @@ Check `conductor/tracks.md` for the dependency notation (`depends: {track-id}`).
 
 For any non-trivial work, start in Plan mode (`shift+tab` twice). Iterate on the plan until it's solid, then switch to auto-accept edits mode for execution. A good plan lets Claude one-shot the implementation. This applies to ad-hoc work — the issue intake workflow (`/accept` → `/implement-track`) already produces structured specs and plans.
 
-### Evolve CLAUDE.md Through PR Reviews
+### Compound CLAUDE.md with Mistake-to-Rule
 
-During code review, tag `@claude` on PRs to update `CLAUDE.md` with lessons learned. If Claude makes a mistake — wrong pattern, banned API, incorrect convention — add a rule to `CLAUDE.md` as part of the PR so it doesn't repeat. This compounds over time: the more the team contributes to `CLAUDE.md`, the fewer mistakes Claude makes. Install the Claude Code GitHub Action (`/install-github-action`) to enable this.
+This is the single highest-leverage habit for improving Claude's output over time. Every time Claude makes a mistake, turn the correction into a permanent rule:
+
+**In-session:** After correcting Claude, end your prompt with: *"update CLAUDE.md so you don't make that mistake again."* Claude will add a terse one-liner rule.
+
+**In code review:** Tag `@claude` on PRs to update `CLAUDE.md` as part of the PR. Example from Boris Cherny's team: `@claude add to CLAUDE.md to never use enums, always prefer literal unions`. Claude reads the CLAUDE.md, updates the relevant line, and commits — all in under a minute. Install the Claude Code GitHub Action (`/install-github-action`) to enable this.
+
+**The compound effect:** A team contributing corrections multiple times per week will see Claude's mistake rate drop from ~1 correction every 3-4 interactions to ~1 every 8-10 within days. Over a month, CLAUDE.md becomes a high-density knowledge base of project-specific patterns.
+
+**Size discipline:** Keep CLAUDE.md under ~500 tokens of actual rules. Remove anything Claude already knows from training (standard language conventions, common patterns). Only keep project-specific corrections and commands. If Claude ignores a rule, the file is too long and the rule is getting lost — prune aggressively. Detailed conventions belong in `context/conventions.md`, not here.
 
 ### Add a PostToolUse Formatter Hook
 

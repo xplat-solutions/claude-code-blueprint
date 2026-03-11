@@ -153,6 +153,13 @@ Example: password-reset_20260228
 
 ### Create spec.md
 
+When generating the spec, apply the **[NEEDS CLARIFICATION]** convention:
+
+- For any requirement where the issue body is ambiguous, underspecified, or leaves a high-impact decision open, **do not guess**. Instead, mark it with `[NEEDS CLARIFICATION: specific question]`.
+- Limit to a maximum of **3 markers** per spec — prioritize by impact on architecture, security, data model, or UX.
+- Only flag genuinely ambiguous items. Do not flag things that have reasonable, obvious defaults.
+- `[NEEDS CLARIFICATION]` markers are treated as **CRITICAL** findings by `/review-specs` and will block implementation until resolved.
+
 Write `conductor/tracks/{track-id}/spec.md`:
 
 ```markdown
@@ -174,14 +181,16 @@ Write `conductor/tracks/{track-id}/spec.md`:
 
 ## Functional Requirements
 
-{Derived from the acceptance criteria — one FR per scenario}
+{Derived from the acceptance criteria — one FR per scenario.
+ Mark unclear requirements: [NEEDS CLARIFICATION: what specifically is unclear]}
 
 - **FR-1:** {requirement from Scenario 1}
 - **FR-2:** {requirement from Scenario 2}
 
 ## Non-Functional Requirements
 
-{From technical notes, or defaults if not specified}
+{From technical notes, or defaults if not specified.
+ Mark missing thresholds: [NEEDS CLARIFICATION: what metric/threshold is needed]}
 
 - **NFR-1:** {requirement}
 
@@ -311,11 +320,13 @@ Example: multi-tenant-user-mgmt_20260228
 
 #### Create spec.md
 
-Same format as Step 3A, but include:
+Same format as Step 3A (including the **[NEEDS CLARIFICATION]** convention), but include:
 
 - `Source: gh#{epic-issue-number}` (or `Source: prd/{filename}.md`)
 - `Parent Epic: {epic-slug}`
 - Dependencies section listing other tracks this depends on
+
+Apply the same `[NEEDS CLARIFICATION: specific question]` markers for ambiguous requirements (max 3 per spec). This is especially important for epic decomposition where individual stories may inherit vague language from the parent epic.
 
 ```markdown
 # {Story Title}
@@ -336,6 +347,8 @@ new feature
 {Gherkin scenarios for this story}
 
 ## Functional Requirements
+
+{Mark unclear requirements: [NEEDS CLARIFICATION: what specifically is unclear]}
 
 - **FR-1:** {derived from Gherkin}
 
@@ -456,6 +469,7 @@ Next: Review specs in \`conductor/tracks/\`, then run \`/implement-prd {epic-slu
 Source: gh#{issue-number} — {issue-title}
 Type: {story | bug}
 Priority: {priority}
+Clarifications needed: {N}        (count of [NEEDS CLARIFICATION] markers, or 0)
 
 Track files:
   conductor/tracks/{track-id}/spec.md
@@ -466,7 +480,19 @@ GitHub:
   Comment posted with track info
 
 Next: Review the spec and plan, then:
-  /implement-track {track-id}
+  /review-specs {track-id}                 (required before implementation)
+  /implement-track {track-id}              (after review passes)
+```
+
+If any `[NEEDS CLARIFICATION]` markers were added:
+
+```
+⚠️ {N} clarification(s) needed before implementation:
+  - {marker 1 summary}
+  - {marker 2 summary}
+
+Resolve these in conductor/tracks/{track-id}/spec.md, then run:
+  /review-specs {track-id}
 ```
 
 ### Epic Decomposition
@@ -491,7 +517,8 @@ GitHub:
   Decomposition comment posted
 
 Next: Review specs in conductor/tracks/, then:
-  /implement-prd {epic-slug}
+  /review-specs {first-track-id} --epic {epic-slug}    (review all tracks)
+  /implement-prd {epic-slug}                            (after reviews pass)
   Or implement individually: /implement-track {track-id}
 ```
 
@@ -539,6 +566,7 @@ Ensure the PRD file exists in the prd/ directory.
 ## Related Commands
 
 - `/setup-project` — One-time GitHub project setup (labels, templates, board)
+- `/review-specs {id}` — Review spec/plan consistency (required before implementation)
 - `/implement-track {id}` — Implement a single track
 - `/implement-prd {slug}` — Implement all tracks from an epic/PRD
 - `/conductor:new-track` — Create track interactively (alternative to /accept)

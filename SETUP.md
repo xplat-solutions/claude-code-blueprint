@@ -38,7 +38,8 @@ These files define your project for all agents and sessions. Each file has a spe
 | `context/product-vision.md` | Problem statement, target users, success criteria, product scope, key differentiators | All agents (via `/prime`), LLM agents writing specs |
 | `context/tech-stack.md` | Technology choices with versions. **Technology names must match keywords in `context/guides/plugin-registry.md`** for plugin auto-detection | All agents (via `/prime`), `/prime` plugin detection |
 | `context/conventions.md` | Code style, naming conventions, commit format, API patterns, validation gates, testing tiers | All agents, subagents (referenced in task descriptions) |
-| `CLAUDE.md` | Tech stack table, project structure tree, validation commands (actual lint/test/build commands), design system reference | Main session (loaded first by `/prime`) |
+| `context/principles.md` | Architectural principles with MUST/SHOULD levels, rationale, and gate checks. Start with 3-5 principles. | `/review-specs` (governance gates), all agents (via `/prime`) |
+| `CLAUDE.md` | Validation commands (actual lint/test/build commands), design system tokens, project-specific rules | Main session (loaded first by `/prime`) |
 
 **For LLM agents creating context files:** Be thorough. These files are the primary source of truth for all implementation decisions. Include specific technology versions, directory paths, API patterns with examples, and concrete validation commands. Other LLM agents will read these files to write specs and implement features — vague or incomplete context leads to poor implementation quality.
 
@@ -112,11 +113,9 @@ The project-level `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is already set in `.c
 
 Fill in the remaining sections of `CLAUDE.md`:
 
-- Tech stack table
-- Project structure tree (with your actual directories)
 - Validation commands (your actual lint, test, build, E2E commands)
-- Design system reference
-- Architecture notes
+- Design system tokens (delete this section if no UI)
+- Project name and description
 
 ---
 
@@ -160,9 +159,11 @@ After setup, the standard workflow for accepting work into the project is:
 
 ```
 1. Create GitHub Issue        → Use the story, bug, or epic template
-2. /accept #NNN              → Parse issue → create Conductor track(s) → update GitHub status
-3. Review specs               → Check conductor/tracks/{id}/spec.md and plan.md
-4. /implement-track {id}     → Implement a single track
+2. /accept #NNN              → Parse issue → create Conductor track(s) → flag [NEEDS CLARIFICATION] markers
+3. Resolve clarifications     → Fix any [NEEDS CLARIFICATION] markers in spec.md
+4. /review-specs {id}        → Validate spec↔plan consistency, coverage, principles → writes review.md
+5. Review specs               → Check conductor/tracks/{id}/spec.md, plan.md, and review.md
+6. /implement-track {id}     → Verifies review.md exists → implement a single track
    OR /implement-prd {slug}  → Implement all tracks from an epic (dependency-aware chained worktrees)
 ```
 
@@ -352,8 +353,10 @@ Track status markers: `[ ]` = not started, `[~]` = in progress, `[x]` = complete
 # Option A: Issue Intake (recommended)
 # Create a GitHub Issue using story/bug/epic template
 /accept #1                               # Accept issue → create track(s)
+# Resolve any [NEEDS CLARIFICATION] markers in spec.md
+/review-specs {track-id}                 # Validate spec/plan → writes review.md
 # Review specs in conductor/tracks/
-/implement-track {track-id}              # Implement a single track
+/implement-track {track-id}              # Implement a single track (requires passing review)
 /implement-prd {epic-slug}              # Or implement all tracks from an epic
 
 # Option B: Track-based (structured)
@@ -390,8 +393,8 @@ Before starting feature work, verify:
 - [ ] `context/product-vision.md` filled in with thorough product definition
 - [ ] `context/tech-stack.md` filled in (technology names match plugin-registry keywords)
 - [ ] `context/conventions.md` reviewed and customized
+- [ ] `context/principles.md` populated with 3-5 project-specific architectural principles
 - [ ] `CLAUDE.md` validation commands filled in (actual lint/test/build commands)
-- [ ] `CLAUDE.md` project structure tree matches actual directories
 - [ ] `wshobson/agents` marketplace registered
 - [ ] Core plugins installed (conductor, agent-teams, developer-essentials, etc.)
 - [ ] Tech-stack plugins installed (e.g., javascript-typescript, backend-development)

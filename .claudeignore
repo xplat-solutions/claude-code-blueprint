@@ -1,0 +1,44 @@
+# OS files
+.DS_Store
+.smbdelete*
+Thumbs.db
+
+# Templates (not needed during implementation)
+context/decisions/000-template.md
+
+# Node dependencies (loaded by tools, not context)
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/settings.json
+*.swp
+*.swo
+
+# Docker volumes
+postgres-data/
+redis-data/
+
+# Test artifacts
+coverage/
+playwright-report/
+test-results/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Large generated files
+pnpm-lock.yaml

@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+
+  "permissions": {
+    "allow": [
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git checkout *)",
+      "Bash(git branch *)",
+      "Bash(git merge *)",
+      "Bash(git stash *)",
+      "Bash(git worktree *)",
+      "Bash(git push *)",
+      "Bash(gh pr *)",
+      "Bash(gh issue *)",
+      "Bash(gh project *)",
+      "Bash(gh label *)",
+      "Bash(docker compose *)",
+      "Bash(docker-compose *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(sort *)",
+      "Bash(grep *)",
+      "Bash(find *)",
+      "Bash(which *)",
+      "Read(apps/**)",
+      "Read(packages/**)",
+      "Read(context/**)",
+      "Read(conductor/**)",
+      "Read(prd/**)",
+      "Read(.claude/**)",
+      "Edit(apps/**)",
+      "Edit(packages/**)",
+      "Edit(context/**)",
+      "Edit(conductor/**)",
+      "Edit(prd/**)",
+      "Edit(.claude/**)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(secrets/**)",
+      "Bash(rm -rf /)",
+      "Bash(git push --force *)",
+      "Bash(git reset --hard *)",
+      "Bash(curl *)",
+      "Bash(wget *)"
+    ]
+  },
+
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+
+  "enabledPlugins": {
+    "conductor": true,
+    "agent-teams": true,
+    "developer-essentials": true,
+    "comprehensive-review": true,
+    "security-scanning": true,
+    "full-stack-orchestration": true,
+    "tdd-workflows": true,
+    "unit-testing": true
+  },
+
+  "respectGitignore": true
+}

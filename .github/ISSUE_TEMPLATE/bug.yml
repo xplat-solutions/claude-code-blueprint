@@ -1,0 +1,76 @@
+name: "Bug Report"
+description: "A bug that maps to one Conductor track"
+labels: ["bug"]
+body:
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: One-line description of the bug
+      placeholder: "e.g., Login form shows 500 error after password reset"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Exact steps to trigger the bug
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What should happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happens?
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria (Gherkin)
+      description: Define the fix verification using Gherkin syntax.
+      value: |
+        ```gherkin
+        Feature: {Bug fix verification}
+
+          Scenario: {Bug no longer occurs}
+            Given {precondition}
+            When {action that previously triggered the bug}
+            Then {correct behavior}
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Technical Notes
+      description: Optional — logs, screenshots, stack traces, suspected root cause.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true

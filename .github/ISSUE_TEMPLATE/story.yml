@@ -1,0 +1,69 @@
+name: "User Story"
+description: "A user story that maps to one Conductor track"
+labels: ["story"]
+body:
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: One-line summary of this story
+      placeholder: "e.g., Users can reset their password via email"
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Who needs this and why?
+      value: |
+        **As a** {role}
+        **I want** {capability}
+        **So that** {benefit}
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria (Gherkin)
+      description: |
+        Define acceptance criteria using Gherkin syntax.
+        Each scenario should have one When and one Then.
+        These flow verbatim into the Conductor track spec.
+      value: |
+        ```gherkin
+        Feature: {Feature name}
+
+          Scenario: {Happy path}
+            Given {precondition}
+            When {action}
+            Then {expected result}
+
+          Scenario: {Edge case}
+            Given {precondition}
+            When {action}
+            Then {expected result}
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Technical Notes
+      description: Optional implementation hints, constraints, or dependencies.
+      placeholder: "e.g., Must integrate with existing auth middleware. See ADR-003."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true

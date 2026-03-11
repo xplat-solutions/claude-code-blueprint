@@ -1,0 +1,235 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CI Pipeline — maps to the track system's validation levels:
+#
+#   Level 1: Static Analysis  → lint job
+#   Level 2: Tests            → test job (+ coverage)
+#   Level 3: Build            → build job
+#   Level 4: E2E              → e2e job (optional)
+#   Level 5: E2E Authenticated→ e2e-authenticated job (optional, secrets-gated)
+#
+# Add context/guides/ci-integration.md for detailed setup guidance if needed.
+# ─────────────────────────────────────────────────────────────────────────────
+
+jobs:
+  # ── Level 1: Static Analysis ───────────────────────────────────────────────
+  lint:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # TODO: Add your language/runtime setup steps here.
+      # Example (Node.js + pnpm):
+      #   - uses: pnpm/action-setup@v4
+      #   - uses: actions/setup-node@v4
+      #     with:
+      #       node-version: 22
+      #       cache: pnpm
+      #   - run: pnpm install --frozen-lockfile
+      #   - run: pnpm lint
+      #   - run: pnpm typecheck
+
+  # ── Level 2: Tests ─────────────────────────────────────────────────────────
+  #
+  # IMPORTANT: If your tests hit a real database (integration tests, services
+  # wired to an ORM), you MUST start a database container here.
+  #
+  # Common mistake: Tests pass locally (where your dev DB is running) but fail
+  # in CI because no database is available. This happens silently when you
+  # migrate from in-memory mocks to real DB queries.
+  #
+  # Rule: Test jobs need ONLY the database — never start your API server or
+  # other application containers here. Those belong in E2E jobs.
+  #
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # TODO: Add your runtime setup steps here.
+
+      # ── Database for tests (uncomment if your tests need a real database) ──
+      #
+      # Option A: Docker Compose (recommended if you have a docker-compose.yml)
+      #
+      #   - name: Start test database
+      #     run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up postgres --detach --wait
+      #     timeout-minutes: 2
+      #
+      # CRITICAL: Target only the database service by name (e.g., "up postgres").
+      # Do NOT use a profile that also starts your API container — the API will
+      # fail its health check (missing env vars, no Dockerfile build in test
+      # context) and block the entire job.
+      #
+      # Option B: GitHub Actions service container
+      #
+      #   services:
+      #     postgres:
+      #       image: postgres:16-alpine
+      #       env:
+      #         POSTGRES_USER: myapp
+      #         POSTGRES_PASSWORD: myapp
+      #         POSTGRES_DB: myapp_test
+      #       ports:
+      #         - 5432:5432
+      #       options: >-
+      #         --health-cmd "pg_isready -U myapp"
+      #         --health-interval 5s
+      #         --health-timeout 3s
+      #         --health-retries 5
+      #
+      # Either way, pass DATABASE_URL as an env var to your test command:
+      #
+      #   - run: pnpm test
+      #     env:
+      #       DATABASE_URL: postgres://myapp:myapp@localhost:5432/myapp_test
+      #
+      # ── Database cleanup (uncomment if using Docker Compose) ───────────────
+      #
+      #   - name: Cleanup test database
+      #     if: always()
+      #     run: docker compose -f docker-compose.yml -f docker-compose.ci.yml down -v
+
+  # ── Level 2b: Coverage (optional) ──────────────────────────────────────────
+  #
+  # Runs after test job passes. Needs the same database setup as the test job.
+  # Uncomment this job if you want coverage reports.
+  #
+  # coverage:
+  #   name: Coverage
+  #   runs-on: ubuntu-latest
+  #   needs: [test]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     # TODO: Same runtime + database setup as test job
+  #     # - run: pnpm test:coverage
+  #     #   env:
+  #     #     DATABASE_URL: postgres://myapp:myapp@localhost:5432/myapp_test
+  #     # - uses: codecov/codecov-action@v4
+  #     #   if: always()
+  #     #   with:
+  #     #     files: ./coverage/coverage-final.json
+  #     #     fail_ci_if_error: false
+
+  # ── Level 3: Build ─────────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - uses: actions/checkout@v4
+
+      # TODO: Add your build steps here.
+      # Example:
+      #   - uses: pnpm/action-setup@v4
+      #   - uses: actions/setup-node@v4
+      #     with:
+      #       node-version: 22
+      #       cache: pnpm
+      #   - run: pnpm install --frozen-lockfile
+      #   - run: pnpm build
+
+  # ── Level 4: E2E Tests (optional) ──────────────────────────────────────────
+  #
+  # E2E tests need the FULL STACK running: database + API + (optionally) web.
+  # This is the only job where you should start application containers.
+  #
+  # Uncomment and configure this job when you add E2E tests.
+  #
+  # e2e:
+  #   name: E2E Tests
+  #   runs-on: ubuntu-latest
+  #   needs: [build]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     # TODO: Runtime setup
+  #
+  #     # Start full stack via Docker Compose CI profile
+  #     # - name: Start CI services (database + API)
+  #     #   run: docker compose -f docker-compose.yml -f docker-compose.ci.yml --profile ci up --detach --wait
+  #     #   timeout-minutes: 3
+  #
+  #     # IMPORTANT: If your API container fails its health check, check:
+  #     #   1. Dockerfile dev target builds workspace packages (dist/ must exist)
+  #     #   2. All required env vars are set in docker-compose.ci.yml
+  #     #   3. The health check endpoint works without auth middleware
+  #     # Tip: Check container logs with `docker compose -f docker-compose.ci.yml logs`
+  #
+  #     # Run migrations + seed
+  #     # - run: pnpm db:migrate && pnpm db:seed
+  #     #   env:
+  #     #     DATABASE_URL: postgres://myapp:myapp@localhost:5432/myapp_test
+  #
+  #     # Install browser + run tests
+  #     # - run: npx playwright install --with-deps chromium
+  #     # - run: pnpm test:e2e --project=chromium
+  #     #   env:
+  #     #     VITE_API_URL: http://localhost:3001
+  #     #     NODE_ENV: test
+  #
+  #     # Upload test artifacts (always, even on failure)
+  #     # - uses: actions/upload-artifact@v4
+  #     #   if: always()
+  #     #   with:
+  #     #     name: playwright-report
+  #     #     path: apps/web/playwright-report/
+  #     #     retention-days: 30
+  #
+  #     # Cleanup
+  #     # - name: Cleanup CI services
+  #     #   if: always()
+  #     #   run: docker compose -f docker-compose.yml -f docker-compose.ci.yml --profile ci down -v
+
+  # ── Level 5: E2E Authenticated (optional, secrets-gated) ───────────────────
+  #
+  # Runs authenticated E2E tests ONLY when auth secrets are configured.
+  #
+  # CRITICAL: GitHub Actions does NOT allow the `secrets` context in job-level
+  # `if` conditions. This YAML is invalid and will fail:
+  #
+  #   e2e-authenticated:
+  #     if: ${{ secrets.MY_SECRET != '' }}    # ← BREAKS: "Unrecognized named-value"
+  #
+  # Instead, use a separate job that outputs secret availability, then
+  # reference that output in the dependent job's `if` condition.
+  #
+  # Uncomment when you need secrets-gated jobs.
+  #
+  # check-secrets:
+  #   name: Check Secrets Availability
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     has-auth-keys: ${{ steps.check.outputs.has-auth-keys }}
+  #   steps:
+  #     - name: Check if auth secrets are configured
+  #       id: check
+  #       run: |
+  #         if [ -n "${{ secrets.AUTH_SECRET_KEY }}" ]; then
+  #           echo "has-auth-keys=true" >> "$GITHUB_OUTPUT"
+  #         else
+  #           echo "has-auth-keys=false" >> "$GITHUB_OUTPUT"
+  #         fi
+  #
+  # e2e-authenticated:
+  #   name: E2E Tests (Authenticated)
+  #   runs-on: ubuntu-latest
+  #   needs: [build, check-secrets]
+  #   if: needs.check-secrets.outputs.has-auth-keys == 'true'
+  #   continue-on-error: true
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     # TODO: Same setup as e2e job, but pass auth secrets as env vars
+  #     # Use GitHub secrets for auth credentials in this job

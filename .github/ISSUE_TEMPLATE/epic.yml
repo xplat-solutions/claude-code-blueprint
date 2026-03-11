@@ -1,0 +1,112 @@
+name: "Epic / PRD"
+description: "A product requirement that decomposes into multiple tracks"
+labels: ["epic"]
+body:
+  - type: input
+    id: feature-title
+    attributes:
+      label: Feature Title
+      description: Short name for this feature/epic
+      placeholder: "e.g., Multi-tenant dashboard"
+    validations:
+      required: true
+
+  - type: textarea
+    id: executive-summary
+    attributes:
+      label: Executive Summary
+      description: What is this feature and why does it matter?
+    validations:
+      required: true
+
+  - type: textarea
+    id: user-stories
+    attributes:
+      label: User Stories
+      description: |
+        List the user stories that make up this epic.
+        Each story should follow the As a / I want / So that format.
+        Include Gherkin acceptance criteria per story.
+      value: |
+        ### Story 1: {title}
+
+        **As a** {role}
+        **I want** {capability}
+        **So that** {benefit}
+
+        ```gherkin
+        Feature: {Feature name}
+
+          Scenario: {Happy path}
+            Given {precondition}
+            When {action}
+            Then {expected result}
+        ```
+
+        ### Story 2: {title}
+
+        **As a** {role}
+        **I want** {capability}
+        **So that** {benefit}
+
+        ```gherkin
+        Feature: {Feature name}
+
+          Scenario: {Happy path}
+            Given {precondition}
+            When {action}
+            Then {expected result}
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Requirements
+      description: |
+        Functional and non-functional requirements.
+        Use FR-N for functional, NFR-N for non-functional.
+      value: |
+        **Functional Requirements**
+
+        - **FR-1:** {requirement}
+        - **FR-2:** {requirement}
+
+        **Non-Functional Requirements**
+
+        - **NFR-1:** {requirement}
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies & Ordering
+      description: |
+        List dependencies between stories. This determines the implementation order
+        and worktree chaining strategy used by /implement-prd.
+      placeholder: |
+        Story 2 depends on Story 1 (needs the auth API)
+        Story 3 is independent
+    validations:
+      required: false
+
+  - type: textarea
+    id: technical-considerations
+    attributes:
+      label: Technical Considerations
+      description: Architecture notes, constraints, or risks.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true

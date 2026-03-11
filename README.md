@@ -58,10 +58,12 @@ cd {PROJECT_NAME}
 │   └── guides/                 # Plugin registry + project-specific guides
 │       └── plugin-registry.md  # Technology → plugin mapping
 ├── prd/                        # Committed PRD files (from /accept epic intake)
-├── apps/                       # Application code
-├── packages/                   # Shared libraries
+├── src/ or apps/               # Application code (structure varies by project)
+├── TROUBLESHOOTING.md          # Error recovery and common failure modes
 └── [config files]              # Docker, CI, package manager, etc.
 ```
+
+> **What's essential on day one?** `CLAUDE.md` (validation commands), `context/tech-stack.md`, and Conductor. Everything else — conventions, principles, GitHub templates, ADRs — adds value but can wait until your second or third track. See SETUP.md Quick Start for the 15-minute path.
 
 ---
 
@@ -287,6 +289,12 @@ Don't use `--dangerously-skip-permissions`. Instead, pre-allow safe commands in 
 ### Compact at Natural Breakpoints
 
 Claude Code auto-compacts at ~95% context capacity, but you get better results compacting manually at logical breakpoints: after `/accept` finishes (before implementation), between tracks in `/implement-prd`, or after a failed approach. Never compact mid-phase or mid-debug. Run `/compact focus on {what matters}` to tell Claude what to preserve. See the Compact Instructions section in `CLAUDE.md` for project-specific preservation rules.
+
+---
+
+### Troubleshooting
+
+See `TROUBLESHOOTING.md` for common failure modes: Ralph Loop failures, worktree issues, bad specs, plugin problems, GitHub sync failures, and context compaction recovery.
 
 ---
 

@@ -1,5 +1,7 @@
 # Architectural Principles
 
+<!-- PRIORITY: Fill after 2-3 tracks — principles emerge from real implementation experience. -->
+
 > Immutable development principles for {PROJECT_NAME}. These act as governance gates — every spec and plan is validated against them by `/review-specs`. Violations are flagged as **CRITICAL** and block implementation until resolved or explicitly justified.
 >
 > **This file must be maintained and updated** as the project evolves. Add new principles when the team discovers recurring quality issues. Amend existing principles when they no longer serve the project. Every change should be reviewed and merged via PR, just like code.

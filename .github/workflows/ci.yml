@@ -20,6 +20,9 @@ concurrency:
 #   Level 5: E2E Authenticated→ e2e-authenticated job (optional, secrets-gated)
 #
 # Add context/guides/ci-integration.md for detailed setup guidance if needed.
+#
+# SETUP: Uncomment and configure the steps for your language/runtime below.
+#        Each job includes examples for Node.js, Python, Go, and Rust.
 # ─────────────────────────────────────────────────────────────────────────────
 
 jobs:
@@ -30,8 +33,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # TODO: Add your language/runtime setup steps here.
-      # Example (Node.js + pnpm):
+      # TODO: Add your language/runtime setup and lint/typecheck commands.
+      #
+      # ── Node.js + pnpm ──
       #   - uses: pnpm/action-setup@v4
       #   - uses: actions/setup-node@v4
       #     with:
@@ -40,6 +44,28 @@ jobs:
       #   - run: pnpm install --frozen-lockfile
       #   - run: pnpm lint
       #   - run: pnpm typecheck
+      #
+      # ── Python ──
+      #   - uses: actions/setup-python@v5
+      #     with:
+      #       python-version: "3.12"
+      #   - run: pip install ruff mypy
+      #   - run: ruff check .
+      #   - run: mypy src/
+      #
+      # ── Go ──
+      #   - uses: actions/setup-go@v5
+      #     with:
+      #       go-version: "1.22"
+      #   - run: golangci-lint run ./...
+      #   - run: go vet ./...
+      #
+      # ── Rust ──
+      #   - uses: dtolnay/rust-toolchain@stable
+      #     with:
+      #       components: clippy, rustfmt
+      #   - run: cargo fmt --check
+      #   - run: cargo clippy -- -D warnings
 
   # ── Level 2: Tests ─────────────────────────────────────────────────────────
   #
@@ -59,22 +85,48 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # TODO: Add your runtime setup steps here.
+      # TODO: Add your runtime setup and test commands.
+      #
+      # ── Node.js ──
+      #   - uses: pnpm/action-setup@v4
+      #   - uses: actions/setup-node@v4
+      #     with:
+      #       node-version: 22
+      #       cache: pnpm
+      #   - run: pnpm install --frozen-lockfile
+      #   - run: pnpm test
+      #
+      # ── Python ──
+      #   - uses: actions/setup-python@v5
+      #     with:
+      #       python-version: "3.12"
+      #   - run: pip install -r requirements.txt
+      #   - run: pytest
+      #
+      # ── Go ──
+      #   - uses: actions/setup-go@v5
+      #     with:
+      #       go-version: "1.22"
+      #   - run: go test ./...
+      #
+      # ── Rust ──
+      #   - uses: dtolnay/rust-toolchain@stable
+      #   - run: cargo test
 
       # ── Database for tests (uncomment if your tests need a real database) ──
       #
       # Option A: Docker Compose (recommended if you have a docker-compose.yml)
       #
       #   - name: Start test database
-      #     run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up postgres --detach --wait
+      #     run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up db --detach --wait
       #     timeout-minutes: 2
       #
-      # CRITICAL: Target only the database service by name (e.g., "up postgres").
+      # CRITICAL: Target only the database service by name (e.g., "up db").
       # Do NOT use a profile that also starts your API container — the API will
-      # fail its health check (missing env vars, no Dockerfile build in test
-      # context) and block the entire job.
+      # fail its health check (missing env vars, no build in CI context) and
+      # block the entire job.
       #
-      # Option B: GitHub Actions service container
+      # Option B: GitHub Actions service container (PostgreSQL example)
       #
       #   services:
       #     postgres:
@@ -91,9 +143,9 @@ jobs:
       #         --health-timeout 3s
       #         --health-retries 5
       #
-      # Either way, pass DATABASE_URL as an env var to your test command:
+      # Pass DATABASE_URL as an env var to your test command:
       #
-      #   - run: pnpm test
+      #   - run: your-test-command
       #     env:
       #       DATABASE_URL: postgres://myapp:myapp@localhost:5432/myapp_test
       #
@@ -115,9 +167,7 @@ jobs:
   #   steps:
   #     - uses: actions/checkout@v4
   #     # TODO: Same runtime + database setup as test job
-  #     # - run: pnpm test:coverage
-  #     #   env:
-  #     #     DATABASE_URL: postgres://myapp:myapp@localhost:5432/myapp_test
+  #     # - run: your-coverage-command
   #     # - uses: codecov/codecov-action@v4
   #     #   if: always()
   #     #   with:
@@ -132,8 +182,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # TODO: Add your build steps here.
-      # Example:
+      # TODO: Add your build steps.
+      #
+      # ── Node.js ──
       #   - uses: pnpm/action-setup@v4
       #   - uses: actions/setup-node@v4
       #     with:
@@ -141,6 +192,23 @@ jobs:
       #       cache: pnpm
       #   - run: pnpm install --frozen-lockfile
       #   - run: pnpm build
+      #
+      # ── Python ──
+      #   - uses: actions/setup-python@v5
+      #     with:
+      #       python-version: "3.12"
+      #   - run: pip install build
+      #   - run: python -m build
+      #
+      # ── Go ──
+      #   - uses: actions/setup-go@v5
+      #     with:
+      #       go-version: "1.22"
+      #   - run: go build ./...
+      #
+      # ── Rust ──
+      #   - uses: dtolnay/rust-toolchain@stable
+      #   - run: cargo build --release
 
   # ── Level 4: E2E Tests (optional) ──────────────────────────────────────────
   #
@@ -155,39 +223,31 @@ jobs:
   #   needs: [build]
   #   steps:
   #     - uses: actions/checkout@v4
-  #     # TODO: Runtime setup
-  #
+  #     # TODO: Runtime setup + start full stack + run E2E tests
+  #     #
   #     # Start full stack via Docker Compose CI profile
   #     # - name: Start CI services (database + API)
   #     #   run: docker compose -f docker-compose.yml -f docker-compose.ci.yml --profile ci up --detach --wait
   #     #   timeout-minutes: 3
-  #
+  #     #
   #     # IMPORTANT: If your API container fails its health check, check:
   #     #   1. Dockerfile dev target builds workspace packages (dist/ must exist)
   #     #   2. All required env vars are set in docker-compose.ci.yml
   #     #   3. The health check endpoint works without auth middleware
   #     # Tip: Check container logs with `docker compose -f docker-compose.ci.yml logs`
-  #
-  #     # Run migrations + seed
-  #     # - run: pnpm db:migrate && pnpm db:seed
-  #     #   env:
-  #     #     DATABASE_URL: postgres://myapp:myapp@localhost:5432/myapp_test
-  #
-  #     # Install browser + run tests
-  #     # - run: npx playwright install --with-deps chromium
-  #     # - run: pnpm test:e2e --project=chromium
-  #     #   env:
-  #     #     VITE_API_URL: http://localhost:3001
-  #     #     NODE_ENV: test
-  #
+  #     #
+  #     # Run migrations + seed, then tests
+  #     # - run: your-migrate-command && your-seed-command
+  #     # - run: your-e2e-command
+  #     #
   #     # Upload test artifacts (always, even on failure)
   #     # - uses: actions/upload-artifact@v4
   #     #   if: always()
   #     #   with:
-  #     #     name: playwright-report
-  #     #     path: apps/web/playwright-report/
+  #     #     name: e2e-report
+  #     #     path: path/to/e2e-report/
   #     #     retention-days: 30
-  #
+  #     #
   #     # Cleanup
   #     # - name: Cleanup CI services
   #     #   if: always()
@@ -198,15 +258,7 @@ jobs:
   # Runs authenticated E2E tests ONLY when auth secrets are configured.
   #
   # CRITICAL: GitHub Actions does NOT allow the `secrets` context in job-level
-  # `if` conditions. This YAML is invalid and will fail:
-  #
-  #   e2e-authenticated:
-  #     if: ${{ secrets.MY_SECRET != '' }}    # ← BREAKS: "Unrecognized named-value"
-  #
-  # Instead, use a separate job that outputs secret availability, then
-  # reference that output in the dependent job's `if` condition.
-  #
-  # Uncomment when you need secrets-gated jobs.
+  # `if` conditions. Use a separate job to check secret availability.
   #
   # check-secrets:
   #   name: Check Secrets Availability
@@ -232,4 +284,3 @@ jobs:
   #   steps:
   #     - uses: actions/checkout@v4
   #     # TODO: Same setup as e2e job, but pass auth secrets as env vars
-  #     # Use GitHub secrets for auth credentials in this job

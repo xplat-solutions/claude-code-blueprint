@@ -1,26 +1,23 @@
-# Dependencies
-node_modules/
-vendor/
-
-# Build outputs
-dist/
-build/
-*.tsbuildinfo
+# OS
+**/.DS_Store
+.smbdelete*
+Thumbs.db
 
 # Environment
 .env
 .env.local
 .env.*.local
 
-# OS
-**/.DS_Store
-.smbdelete*
-
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+
+# Build outputs (generic)
+dist/
+build/
+out/
 
 # Testing
 coverage/
@@ -30,3 +27,30 @@ coverage/
 
 # Git Worktrees
 .worktrees/
+
+# --- Node.js / JavaScript (uncomment if applicable) ---
+# node_modules/
+# .pnpm-store/
+# .turbo/
+# *.tsbuildinfo
+# pnpm-lock.yaml
+
+# --- Python (uncomment if applicable) ---
+# __pycache__/
+# *.pyc
+# .venv/
+# *.egg-info/
+# .mypy_cache/
+# .pytest_cache/
+
+# --- Go (uncomment if applicable) ---
+# vendor/ (if not using Go modules)
+
+# --- Rust (uncomment if applicable) ---
+# target/
+# Cargo.lock (uncomment for libraries only)
+
+# --- Java / Kotlin (uncomment if applicable) ---
+# .gradle/
+# *.class
+# *.jar

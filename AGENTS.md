@@ -72,23 +72,17 @@ The project-level `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` env var is already se
 
 When `/implement-track` or `/conductor:implement` spawns subagents via the Task tool, each subagent receives context through its task description. The main agent should include references to relevant `context/` files so subagents can read project-specific context directly.
 
-### Frontend Subagent
+### Module Subagents
 
-Owns frontend application directories. Task descriptions should reference `context/conventions.md` for code style and `context/tech-stack.md` for framework details. Skills auto-activate from installed plugins based on file context.
+Subagents are scoped to ownership zones — non-overlapping directory boundaries that prevent merge conflicts. Define zones based on your architecture. Examples:
 
-### Backend Subagent
+**Web app:** Frontend subagent (owns `apps/web/`), Backend subagent (owns `apps/api/`), Shared Types subagent (owns `packages/shared-types/` — runs first when new types are needed).
 
-Owns backend application directories. Task descriptions should reference `context/conventions.md` for API patterns and `context/tech-stack.md` for backend framework details. Skills auto-activate from installed plugins based on file context.
+**Monolith:** Domain subagents scoped by module (owns `src/auth/`, `src/billing/`, etc.).
 
-### Shared Types Subagent
+**CLI / library:** Core subagent (owns `src/`), Test subagent (owns `tests/`).
 
-**Owns:** `packages/shared-types/` (or equivalent)
-
-- Type definitions shared between frontend and backend
-- Validation schemas used for runtime checks
-- API request/response type contracts
-
-**Runs first** when a track needs new entity types. Frontend and Backend subagents depend on these types being defined.
+Task descriptions should reference `context/conventions.md` for code style and `context/tech-stack.md` for framework details. Skills auto-activate from installed plugins based on file context.
 
 ### Code Review (via Hobson)
 
@@ -113,24 +107,28 @@ Use Hobson's security commands — no custom agent needed:
 Subagents and Agent Team implementers must respect file boundaries:
 
 ```
-[frontend dirs]    → Frontend subagent / implementer ONLY
-[backend dirs]     → Backend subagent / implementer ONLY
-[shared types]     → Shared Types subagent (or Backend if no separate agent)
-[shared configs]   → Either (read-only during track implementation)
+[module-a dirs]    → Module A subagent / implementer ONLY
+[module-b dirs]    → Module B subagent / implementer ONLY
+[shared dirs]      → Shared subagent (or whichever runs first)
+[config files]     → Either (read-only during track implementation)
 ```
 
-**Critical:** Two agents must NEVER edit the same file. If a task requires changes across boundaries, run it sequentially (not in parallel) or coordinate via the shared types package.
+Define your actual ownership zones in each track's `plan.md` (see Track-Specific Agent Strategies below). For a web app this typically maps to frontend/backend/shared-types. For a monolith it maps to domain modules.
+
+**Critical:** Two agents must NEVER edit the same file. If a task requires changes across boundaries, run it sequentially (not in parallel) or coordinate via the shared package.
 
 ---
 
 ## Coordination Patterns
 
-### Pattern 1: Types-First (Default for Subagents)
+### Pattern 1: Contracts-First (Default for Subagents)
+
+Define shared contracts (types, interfaces, schemas) first, then implement modules in parallel.
 
 ```
-1. Shared Types subagent → defines interfaces + validation schemas
-2. Backend subagent      → implements API using those types     } parallel
-3. Frontend subagent     → builds UI consuming the API          }
+1. Shared subagent → defines contracts (types, validation schemas, API shapes)
+2. Module A        → implements using those contracts     } parallel
+3. Module B        → implements using those contracts     }
 ```
 
 ### Pattern 2: Parallel Independent (for Agent Teams)
@@ -142,13 +140,15 @@ Subagents and Agent Team implementers must respect file boundaries:
 → Lead integrates and validates
 ```
 
-### Pattern 3: Real-Time Tracks
+### Pattern 3: Sequential Integration
+
+When modules must integrate (real-time flows, cross-module transactions):
 
 ```
-1. Shared Types    → event types + payload interfaces
-2. Backend         → server-side event handlers, DB
-3. Frontend        → client-side hooks, UI components
-4. Integration     → end-to-end real-time flow (sequential, must be single agent)
+1. Shared contracts → types + schemas
+2. Module A         → core implementation
+3. Module B         → consuming implementation
+4. Integration      → end-to-end flow (sequential, must be single agent)
 ```
 
 ---
@@ -255,10 +255,10 @@ Define per-track strategies in your track's `plan.md`:
 
 | Phase | Agent | Parallel | Notes |
 |-------|-------|----------|-------|
-| 1. Shared Types | Single | No | Define types first |
-| 2. Backend API | Backend subagent | Yes (with Phase 3) | Implements endpoints |
-| 3. Frontend UI | Frontend subagent | Yes (with Phase 2) | Builds components |
-| 4. Integration | Single | No | Connect frontend to backend |
+| 1. Shared contracts | Single | No | Define types/schemas first |
+| 2. Module A | Module A subagent | Yes (with Phase 3) | Implements core logic |
+| 3. Module B | Module B subagent | Yes (with Phase 2) | Implements consuming logic |
+| 4. Integration | Single | No | Connect modules end-to-end |
 ```
 
 ---
@@ -267,11 +267,11 @@ Define per-track strategies in your track's `plan.md`:
 
 As you build tracks, document reusable patterns here:
 
-- Common hooks or utilities that multiple features can share
-- UI component patterns that appear across tracks
-- API integration patterns (polling, real-time, webhooks)
-- Database schema patterns (audit logs, soft deletes, polymorphism)
-- Testing patterns (fixture generation, mocking strategies)
+- Shared utilities and abstractions that multiple features use
+- Integration patterns (API clients, event handling, message queues)
+- Data access patterns (repositories, query builders, caching strategies)
+- Testing patterns (fixture generation, mocking strategies, test helpers)
+- Error handling patterns (retry logic, circuit breakers, fallbacks)
 
 Before creating a new component or service, check if a similar pattern exists in an earlier track.
 

@@ -6,16 +6,6 @@ Thumbs.db
 # Templates (not needed during implementation)
 context/decisions/000-template.md
 
-# Node dependencies (loaded by tools, not context)
-node_modules/
-.pnpm-store/
-
-# Build outputs
-dist/
-build/
-.turbo/
-*.tsbuildinfo
-
 # Environment and secrets
 .env
 .env.*
@@ -27,18 +17,49 @@ build/
 *.swp
 *.swo
 
-# Docker volumes
-postgres-data/
-redis-data/
+# Build outputs (generic)
+dist/
+build/
+out/
+target/
+bin/
 
 # Test artifacts
 coverage/
-playwright-report/
 test-results/
-
-# Logs
 *.log
-npm-debug.log*
 
-# Large generated files
-pnpm-lock.yaml
+# --- Node.js / JavaScript (uncomment if applicable) ---
+# node_modules/
+# .pnpm-store/
+# .turbo/
+# *.tsbuildinfo
+# pnpm-lock.yaml
+# npm-debug.log*
+# playwright-report/
+
+# --- Python (uncomment if applicable) ---
+# __pycache__/
+# *.pyc
+# .venv/
+# *.egg-info/
+# .mypy_cache/
+# .pytest_cache/
+# htmlcov/
+
+# --- Go (uncomment if applicable) ---
+# vendor/ (if not using Go modules)
+
+# --- Rust (uncomment if applicable) ---
+# target/
+# Cargo.lock (for libraries; keep for binaries)
+
+# --- Java / Kotlin (uncomment if applicable) ---
+# .gradle/
+# build/
+# *.class
+# *.jar
+
+# --- Docker volumes (uncomment if applicable) ---
+# postgres-data/
+# redis-data/

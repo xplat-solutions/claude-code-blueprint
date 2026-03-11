@@ -1,5 +1,7 @@
 # Product Vision
 
+<!-- PRIORITY: Fill before first track — agents use this to write specs and make design decisions. -->
+
 > Define what we're building and why. Loaded every session to align all agents on the project's purpose.
 
 ---

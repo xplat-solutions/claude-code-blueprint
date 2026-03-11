@@ -4,14 +4,35 @@
 
 ---
 
-## Overview
+## Quick Start (15 minutes)
 
-This blueprint provides a Hobson-first project template for AI-assisted development using Claude Code. The setup process creates two layers of project context:
+If you want to get building fast, do only these 4 steps. Everything else can be filled in incrementally.
 
-1. **Blueprint context layer** (`context/`) — Project vision, tech stack, conventions, and plugin registry. Read by `/prime` at the start of every Claude Code session.
-2. **Conductor artifacts** (`conductor/`) — Product definition, workflow rules, and track registry. Created by `/conductor:setup` and used by Conductor's implementation engine.
+```bash
+# 1. Replace placeholders in all files
+#    Find-and-replace: {PROJECT_NAME}, {DESCRIPTION}, {DATE}
 
-Both layers must be populated before feature work begins.
+# 2. Fill in your validation commands in CLAUDE.md
+#    This is the single most important thing — without real commands, the Ralph Loop can't validate.
+
+# 3. Fill in context/tech-stack.md with your actual technologies
+#    Technology names must match plugin-registry.md for /prime to detect plugins.
+
+# 4. Initialize and verify
+/plugin marketplace add wshobson/agents
+/conductor:setup                         # Create Conductor artifacts
+/prime                                    # Load context + detect plugins
+/plugin install {missing-plugins}         # Install plugins flagged by /prime
+/prime                                    # Verify all plugins enabled
+```
+
+After these 4 steps you can run `/accept`, `/implement-prompt`, or `/conductor:new-track` to start building. Fill in conventions, principles, GitHub project setup, and guides as you go — they improve quality but aren't blockers.
+
+---
+
+## Complete Setup
+
+The sections below cover the full setup process. If you did the Quick Start above, skip to Step 2 (Hobson Agents) and work through the rest when ready.
 
 ---
 
@@ -191,18 +212,21 @@ context/guides/
 
 ## Step 6: Set Up Application Code
 
-### 6.1 Create your app directories
-
-Set up the directories for your application:
+Create your project's source directories. Examples:
 
 ```bash
-# Example for a monorepo
-mkdir -p apps/api/src apps/web/src packages/shared-types/src packages/db
+# Monorepo (web app)
+mkdir -p apps/api/src apps/web/src packages/shared-types/src
+
+# Single app
+mkdir -p src/ tests/
+
+# CLI / library
+mkdir -p src/ tests/ examples/
+
+# Microservices
+mkdir -p services/auth/src services/billing/src packages/shared/
 ```
-
-### 6.2 Update CLAUDE.md project structure
-
-Edit the Project Structure section of `CLAUDE.md` to match your actual directory layout.
 
 ---
 
@@ -407,38 +431,7 @@ Before starting feature work, verify:
 
 ## Troubleshooting
 
-### Plugins not loading
-
-```bash
-# Clear plugin cache and reinstall
-rm -rf ~/.claude/plugins/cache/claude-code-workflows
-rm ~/.claude/plugins/installed_plugins.json
-
-# Re-register marketplace and reinstall
-/plugin marketplace add wshobson/agents
-/plugin install {plugin-names}
-```
-
-### /prime reports missing plugins
-
-Run `/prime` after installing plugins. If plugins are installed but showing as missing, check that `enabledPlugins` in `.claude/settings.json` includes them. `/prime` will self-heal if `enabledPlugins` is missing entirely.
-
-### Agent Teams not spawning
-
-1. Check env var: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `.claude/settings.json`
-2. Check display mode: `teammateMode` in `~/.claude/settings.json`
-3. If using tmux mode, ensure tmux is installed: `which tmux`
-
-### Port conflicts
-
-Check for processes using required ports:
-```bash
-lsof -i :{port}
-```
-
-### Missing context files
-
-`/prime` will report exactly which files are missing. Create them following the descriptions in Step 1.2 above.
+See `TROUBLESHOOTING.md` for the complete guide covering: Ralph Loop failures, worktree recovery, bad specs, plugin issues, GitHub sync failures, context compaction recovery, and more.
 
 ---
 

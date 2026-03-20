@@ -21,26 +21,69 @@ Read these files in order. **If any is missing, stop and report the error.**
 2. AGENTS.md                        — Multi-agent coordination rules
 ```
 
-### Step 2: Read All Context Files
+### Step 2: Read Core Context Files
 
-Read every `.md` file in `context/` and all subdirectories (`context/**/*.md`). This includes:
+Read these files in full. **If any is missing, stop and report the error.**
 
 ```
 context/
 ├── product-vision.md               — What {PROJECT_NAME} is, target users, success criteria
 ├── tech-stack.md                    — Technology decisions and rationale
 ├── conventions.md                   — Code style, naming, commit format, API patterns, validation gates
-├── principles.md                    — Architectural principles & governance gates (used by /review-specs)
-├── decisions/                       — Architecture Decision Records (if any)
-└── guides/
-    └── plugin-registry.md           — Technology → plugin mapping (verified v1.5.5)
+└── principles.md                    — Architectural principles & governance gates (used by /review-specs)
 ```
 
-**If `context/product-vision.md`, `context/tech-stack.md`, or `context/conventions.md` is missing, stop and report the error.** Other files in `context/` are optional — read them if present, skip if not.
+Also read all Architecture Decision Records (if any exist):
+
+```
+context/decisions/*.md               — ADRs (optional — read all if present, skip if directory is empty)
+```
+
+### Step 2a: Read Required Guides + Scout Additional Guides
+
+**Always read in full:**
+
+```
+context/guides/plugin-registry.md    — Technology → plugin mapping (required for Step 4)
+```
 
 **If `context/guides/plugin-registry.md` is missing, stop and report the error.** The registry is required for plugin detection.
 
-Any additional `.md` files found in `context/` or its subdirectories (e.g., project-specific guides added by the team) are read automatically. No hardcoded file list — `/prime` reads everything recursively.
+**Scout additional guides (selective loading):**
+
+List all other `.md` files in `context/guides/` beyond `plugin-registry.md`. If there are **3 or fewer** additional guides, read them all in full — the token cost is negligible. If there are **4 or more** additional guides, read only the first 10 lines of each file (title + description) and present them as available on-demand context.
+
+Guide files follow a standard opening format:
+
+```markdown
+# {Guide Title}
+
+> {One-line description of what this guide covers and when to load it.}
+```
+
+**Output for scouted (not fully loaded) guides:**
+
+```
+📂 Available Guides (load as needed)
+┌──────────────────────────────┬──────────────────────────────────────────────┐
+│ Guide                        │ Description                                  │
+├──────────────────────────────┼──────────────────────────────────────────────┤
+│ frontend-conventions.md      │ React component patterns, design system usage│
+│ backend-conventions.md       │ API patterns, middleware, error handling      │
+│ e2e-durability.md            │ E2E test reliability rules, banned patterns  │
+│ ci-integration.md            │ CI/CD pipeline patterns, Docker Compose      │
+└──────────────────────────────┴──────────────────────────────────────────────┘
+
+  Load a guide when working in that area: "Read context/guides/{filename}"
+```
+
+**Agent behavior after scouting:** The guide previews remain in conversation memory. When the agent begins working on a task in a specific area (e.g., implementing a frontend phase), it should recognize from the preview that a relevant guide exists and load it at that point. This is just-in-time context loading — guides enter the context window only when they're needed for the current task, not upfront.
+
+**Output for fully loaded guides (≤3 additional guides):**
+
+```
+📂 Guides: {N} loaded in full (plugin-registry.md + {N-1} project guides)
+```
 
 ### Step 2b: Read PRD Files (Non-Blocking)
 
@@ -175,7 +218,7 @@ Generate a random UUID for this prime session. Display it in the output so it pe
 
 Project: {one-line description from product-vision.md}
 Stack: {tech stack summary from tech-stack.md}
-Context files: {N} loaded from context/**/*.md
+Context files: {N} loaded in full, {N} scouted (available on demand)
 PRDs: {N} loaded from prd/*.md
 Conductor: {Initialized — {N} tracks / Not initialized}
 Agent Teams: {Enabled / Not enabled}
@@ -223,6 +266,7 @@ Optional files (warn if missing, continue):
 
 - `/prime` is idempotent — running it twice is fine (generates a new UUID each time)
 - Context is session-scoped — each new Claude Code session needs `/prime` again
-- **Subagent context:** Subagents spawned via the Task tool do NOT inherit the main session's context. Task descriptions must include relevant context references so the subagent reads project files directly.
+- **Guide scouting:** Guides in `context/guides/` beyond `plugin-registry.md` are previewed (first 10 lines) rather than fully loaded when there are 4+ guides. This keeps the initial context lean. The agent loads full guides just-in-time when working in a relevant area. Guide files must start with a `# Title` and `> Description` line for previews to be meaningful.
+- **Subagent context:** Subagents spawned via the Task tool do NOT inherit the main session's context. Task descriptions must include relevant context references so the subagent reads project files directly. When referencing scouted guides, include the full path so the subagent reads the guide directly.
 - **Agent Teams:** Each teammate is an independent Claude Code session. Teammates auto-load installed plugins and can read project files (including all `context/` files) independently. The team lead coordinates via structured messages.
 - **Skill loading:** For the main thread, plugin skills auto-activate based on file context. No manual skill configuration is needed. Subagents also auto-activate skills when they read files in matching directories.

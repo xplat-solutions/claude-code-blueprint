@@ -72,5 +72,19 @@
     "unit-testing": true
   },
 
+  "hooks": {
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '⚠️ Context compaction triggered — saving session state via /handoff before compacting.' >&2 && echo 'HANDOFF_RECOMMENDED' || true"
+          }
+        ]
+      }
+    ]
+  },
+
   "respectGitignore": true
 }

@@ -91,6 +91,7 @@ When context compacts, preserve:
 - **Dependency chain** — which tracks depend on which, and `--base` branch for chained worktrees
 - **Failing test details** — if in a Ralph Loop, keep exact error messages and iteration count
 - **Architecture decisions** — decisions not yet written to `context/decisions/`
+- **Scouted guides loaded** — which `context/guides/` files were loaded mid-session (beyond what `/prime` previewed)
 
 Summarize aggressively: file contents read for reference (re-read from disk), completed phases (plan.md has status), plugin detection output (re-run /prime).
 
@@ -98,6 +99,14 @@ Compact at natural breakpoints only — after `/accept`, between tracks, after R
 
 ```
 /compact focus on track {track-id} implementation — preserve current phase, failing tests, and dependency chain
+```
+
+**PreCompact hook:** A `PreCompact` hook in `.claude/settings.json` fires before every compaction, reminding the agent to run `/handoff` first. When compaction triggers, evaluate whether a handoff would preserve more state than compaction — especially if compaction has already happened once.
+
+**When to use `/handoff` instead of `/compact`:** If compaction has already happened once in this session and the agent is starting to lose track of context, run `/handoff` to create a structured handoff document and start a fresh session. A second compaction rarely preserves enough detail.
+
+```
+/handoff --track {track-id}
 ```
 
 ---

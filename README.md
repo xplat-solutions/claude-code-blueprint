@@ -104,6 +104,15 @@ cd {PROJECT_NAME}
 | `/security-sast` | SAST security scan |
 | `/team-spawn security` | Comprehensive parallel security audit |
 
+### Session Management
+
+| Command | Purpose |
+|---------|---------|
+| `/handoff` | Create structured handoff document for session transfer |
+| `/compact focus on {what}` | In-place context compression (same session continues) |
+| `/context-audit` | Analyze token budget across context, plugins, MCP servers |
+| `/context-audit --track {id}` | Include track token estimation without loading it |
+
 ### Monitoring & Management
 
 | Command | Purpose |
@@ -282,9 +291,46 @@ Mitigations:
 - **Install context-mode** — The `mksglu/claude-context-mode` plugin compresses MCP tool outputs by 95-99%, extending sessions from ~30 minutes to ~3 hours. Install via `/plugin marketplace add mksglu/claude-context-mode`. Recommended for projects with 3+ MCP servers.
 - **Batch operations** — When querying external tools, prefer batch calls over many small ones to reduce per-call overhead.
 
+### Search Before Building
+
+Before writing custom code for a non-trivial problem, search for existing solutions: project-internal patterns first, then installed dependencies, then well-maintained libraries. If an existing solution covers ≥80% of the requirement, prefer it over custom code. This is codified as a SHOULD-level principle in `context/principles.md` and documented in `context/conventions.md`. AI agents naturally gravitate toward writing new code — this convention counteracts that bias.
+
+### Audit Your Context Budget
+
+Run `/context-audit` after `/prime` to see where your tokens are going. The report breaks down consumption across always-loaded context, guides (loaded vs scouted), plugins, MCP servers, and optionally a specific track. Use it to identify bloat — an unused plugin consuming 4k tokens or a guide loaded in full that should be scouted. Add `--track {id}` to estimate how much runway you'll have before starting implementation on a specific track.
+
+### Leverage Guide Scouting
+
+`/prime` automatically scouts `context/guides/` — when there are 4+ guide files, it reads only the title and description of each guide rather than loading them in full. The agent then loads relevant guides just-in-time when it starts working in a specific area. This keeps the initial context window lean while still making all project knowledge discoverable.
+
+To make scouting effective, every guide file in `context/guides/` should start with a clear title and one-line description:
+
+```markdown
+# Frontend Conventions
+
+> React component patterns, design system usage, and accessibility requirements. Load when working on UI components.
+```
+
+If a guide doesn't have this opening format, the preview in `/prime` will be less useful and the agent may not recognize when to load it.
+
 ### Keep Permissions Explicit
 
 Don't use `--dangerously-skip-permissions`. Instead, pre-allow safe commands in `.claude/settings.json` (already configured in this blueprint). When your project adds new tools or commands, add them to the `allow` list and commit — the whole team benefits.
+
+### Use `/handoff` for Session Continuity
+
+Long sessions degrade. When context has been compacted once and the agent starts losing track of decisions or repeating mistakes, run `/handoff` instead of compacting again. This creates a structured handoff document at `conductor/handoffs/` that captures track state, key decisions, failed approaches, and concrete next steps — then you start a fresh session with `/prime` and point it at the handoff file.
+
+The rule of thumb: `/compact` once is fine. `/compact` twice means run `/handoff` and start fresh. A good handoff document lets the next session start productive work within 2-3 turns. A `PreCompact` hook in `.claude/settings.json` fires before every compaction as a reminder to consider `/handoff` first.
+
+```bash
+# When the session is getting bloated
+/handoff --track {track-id}
+
+# In the new session
+/prime
+Read conductor/handoffs/{filename} and continue from where the previous session left off.
+```
 
 ### Compact at Natural Breakpoints
 

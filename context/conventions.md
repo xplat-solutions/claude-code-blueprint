@@ -102,6 +102,25 @@ test(billing): add integration tests for invoice generation
 
 Change the format if your team uses a different convention (e.g., Conventional Commits with footers, Angular style, or plain imperative sentences).
 
+### AI-Context Footer
+
+When a commit modifies files in the AI layer (`.claude/`, `context/`, `conductor/`), append an `AI-context:` trailer to the commit message. This creates a searchable log of how rules, commands, and context evolve over time — useful for understanding why the agent behaves differently than it did a week ago.
+
+```
+feat(auth): add JWT token refresh endpoint
+
+AI-context: added token-refresh pattern to context/conventions.md
+```
+
+```
+fix(upload): handle timeout for files over 50MB
+
+AI-context: updated CLAUDE.md with upload timeout rule;
+  added retry guidance to context/guides/backend-conventions.md
+```
+
+The footer is **optional** — only include it when the AI layer was actually modified in the same commit. Most commits won't have it. When reading `git log`, agents should look for `AI-context:` footers to understand how their own rules and commands have evolved recently.
+
 ### Track Commits
 
 When working on a Conductor track:
@@ -109,9 +128,31 @@ When working on a Conductor track:
 {type}(track-{id}/phase-{n}): {description}
 ```
 
+Track commits can also carry the `AI-context:` footer when they modify the AI layer:
+
+```
+feat(track-user-auth_20250115/phase-2): build login form components
+
+AI-context: added form validation pattern to context/guides/frontend-conventions.md
+```
+
 ### Worktree Workflow
 
 Each track is implemented in an isolated git worktree. Branch naming: `ai/track-{track-id}`. Worktrees live in `.worktrees/` (git-ignored). Always merge with `--no-ff` to preserve commit history.
+
+---
+
+## Search-First Convention
+
+Before writing custom code for a non-trivial problem, check for existing solutions in this order:
+
+1. **Project-internal** — search the codebase for existing utilities, helpers, or patterns that already solve the problem
+2. **Installed dependencies** — check if an already-installed library provides the functionality (read its docs, don't guess)
+3. **Well-maintained libraries** — if no existing solution fits, evaluate established libraries before writing from scratch
+
+Use the decision matrix: if an existing solution covers ≥80% of the requirement and is actively maintained, prefer it over custom code. Document the choice in the plan task or commit message when the decision is non-obvious.
+
+This applies to utilities, integrations, data transformations, validation logic, and algorithms. It does not apply to trivial code (< 20 lines) or core domain logic that is inherently project-specific.
 
 ---
 

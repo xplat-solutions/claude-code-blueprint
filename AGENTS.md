@@ -189,6 +189,18 @@ fix(user-auth_20250115): resolve merge conflict in shared types
 
 All commits within worktree branch. PR created at track completion via `gh pr create`.
 
+### AI-Context Footer
+
+When a commit modifies any file in `.claude/`, `context/`, or `conductor/`, agents **must** append an `AI-context:` trailer to the commit message. This tracks how the AI layer evolves over time and feeds into `/prime`'s git log review.
+
+```
+feat(track-user-auth_20250115/phase-1): add API endpoints
+
+AI-context: added auth middleware pattern to context/guides/backend-conventions.md
+```
+
+See `context/conventions.md` → AI-Context Footer for the full convention. The footer is only required when AI layer files were actually modified — most commits won't need it.
+
 ---
 
 ## Context Loading
@@ -211,6 +223,16 @@ All commits within worktree branch. PR created at track completion via `gh pr cr
 - Has its own tool access and can make commits
 
 Task descriptions (for subagents) must include: which track/phase, files to create/modify, acceptance criteria, relevant API contracts.
+
+### Dynamic System Prompt for Subagents
+
+When spawning a subagent via CLI (outside the Task tool), use `--system-prompt` to inject surgical context without loading the full context layer:
+
+```bash
+claude --system-prompt "$(cat context/conventions.md context/tech-stack.md)" "Implement the auth middleware in src/auth/"
+```
+
+This is useful when a subagent needs specific context files but loading everything via `/prime` would waste tokens. The Task tool handles context injection through task descriptions; this technique is for CLI-spawned agents and scripts.
 
 ---
 

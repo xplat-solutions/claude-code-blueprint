@@ -141,6 +141,24 @@ Use this structure for each principle. Copy it when adding new ones.
 
 ---
 
+### Principle 5: {Search Before Building}
+
+**Level:** SHOULD
+
+**Statement:** {Before writing custom code for a non-trivial problem (utilities, integrations, data transformations, algorithms), agents and developers should search for existing solutions — project-internal patterns, installed dependencies, or well-maintained libraries — and prefer reuse over reinvention.}
+
+**Rationale:** {AI agents naturally gravitate toward writing new code rather than discovering existing solutions. This leads to duplicated logic, missed library features, and unnecessary maintenance surface. A brief search phase before implementation consistently produces leaner, more reliable outcomes.}
+
+**Gate Checks:**
+
+- [ ] {Plan tasks that introduce new utilities or abstractions include a "check for existing solutions" step}
+- [ ] {When a plan uses a third-party library, the spec or plan notes why that library was chosen over alternatives}
+- [ ] {No custom implementation duplicates functionality already available in the project's installed dependencies}
+
+**Exceptions:** {Trivial code (< 20 lines), performance-critical paths where library overhead is unacceptable, or cases where the only available library introduces unacceptable dependency risk.}
+
+---
+
 <!-- ADD MORE PRINCIPLES HERE AS YOUR PROJECT EVOLVES -->
 
 ---

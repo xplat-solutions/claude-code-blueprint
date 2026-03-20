@@ -149,7 +149,21 @@ Conductor reads `tracks.md` as the source of truth. If you fix the file, the sta
 
 If auto-compaction happened mid-implementation and Claude lost track of where it was:
 
-**Recover track state:**
+**If compaction already happened once (recommended):** Don't compact again — run `/handoff` to create a structured handoff document, then start a fresh session. The handoff captures track state, decisions, failed approaches, and exact error messages — everything the fresh session needs to resume without repeating work.
+
+```bash
+# In the degrading session
+/handoff --track {track-id}
+
+# In the fresh session
+/prime
+Read conductor/handoffs/{filename} and continue from where the previous session left off.
+```
+
+Check `conductor/handoffs/` for recent handoff files.
+
+**If this is the first compaction (lighter recovery):** Re-read track state from disk:
+
 ```bash
 /prime                                    # Reload all context
 /conductor:status                        # See which tracks are in progress
@@ -157,7 +171,7 @@ If auto-compaction happened mid-implementation and Claude lost track of where it
 
 Then read the track's `plan.md` — it contains phase/task completion status. Claude can pick up where it left off.
 
-**Prevent this:** Compact at natural breakpoints only. See CLAUDE.md Compact Instructions for the rules. Run `/compact focus on track {id}` to explicitly tell Claude what to preserve.
+**Prevent this:** Compact at natural breakpoints only. See CLAUDE.md Compact Instructions for the rules. Run `/compact focus on track {id}` to explicitly tell Claude what to preserve. The `PreCompact` hook in `.claude/settings.json` fires before every compaction as a reminder to consider `/handoff` instead. Run `/context-audit` proactively to check whether the context window is getting tight before it triggers auto-compaction.
 
 ---
 

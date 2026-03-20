@@ -206,7 +206,19 @@ context/guides/
 └── {your-guide}.md              # Add: any project-specific architectural guidance
 ```
 
-**For LLM agents creating guides:** These files are read by `/prime` automatically (all `context/**/*.md` files are loaded). Write them as actionable instructions, not abstract principles. Include specific directory paths, file patterns, code examples, and quality gate criteria. Subagents receive context through task descriptions that reference these files, so make each guide self-contained.
+**Guide file format requirement:** Every guide must start with a title and a one-line description on the first two non-empty lines. This format is required for `/prime`'s guide scouting — when there are 4+ guides, `/prime` reads only the opening lines as a preview and lists them as available on-demand context. Without this format, the preview is meaningless and the agent won't know when to load the guide.
+
+```markdown
+# {Guide Title}
+
+> {One-line description of what this guide covers and when to load it.}
+
+---
+
+{Full guide content follows...}
+```
+
+**For LLM agents creating guides:** These files are selectively loaded by `/prime` — core context files are always read in full, but guides in `context/guides/` are scouted (previewed) when there are 4+ of them and loaded just-in-time when working in that area. Write them as actionable instructions, not abstract principles. Include specific directory paths, file patterns, code examples, and quality gate criteria. Subagents receive context through task descriptions that reference these files, so make each guide self-contained.
 
 ---
 
